@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Logs</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+    {% include 'navbar.html' %}
+    <div class="container mt-5 vh-100 ">
+        <h1 class="mb-4">Logs</h1>
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Event</th>
+                    <th>From Number</th>
+                    <th>To Number</th>
+                    <th>Direction</th>
+                    <th>Call ID</th>
+                    <th>User</th>
+                    <th>User Ids</th>
+                    <th>Other User Ids</th>
+                    <th>Full User Ids</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for call in calls_data %}
+                    <tr>
+                        <td>{{ call.id }}</td>
+                        <td>{{ call.event }}</td>
+                        <td>{{ call.from_number }}</td>
+                        <td>{{ call.to_number }}</td>
+                        <td>{{ call.direction }}</td>
+                        <td>{{ call.call_id }}</td>
+                        <td>{{ call.user }}</td>
+                        <td>{{ call.user_id_list }}</td>
+                        <td>{{ call.user_id_list1 }}</td>
+                        <td>{{ call.full_user_id_list }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'footer.html' %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
