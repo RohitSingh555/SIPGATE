@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <meta charset="utf-8">
-
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
   {% include 'navbar.html' %}
@@ -15,21 +18,35 @@
       <div class="card">
         <div class="card-body bg-light p-3 rounded">
           <h5 class="card-title text-center mb-4">User Information</h5>
-          <div class="row">
-            <div class="col-md-4">
-              <p class="p-4 "><img style="border-radius: 50%;" src="http://placehold.it/150x150"></p>
-            </div>
-            <div class="col-md-8">
-              <p><strong>ID:</strong> w0</p>
-              <p><strong>First Name:</strong> Ada</p>
-              <p><strong>Last Name:</strong> Lovelace</p>
-              <p><strong>Email:</strong> ada.lovelace@sipgate</p>
-              <p><strong>company:</strong> e0</p>
+          <div class="dropdown" style="position: absolute; top: 10px; right: 10px;">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Switch User
+            </button>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              {% for user in context.user_data %}
+                <a class="dropdown-item user-option" href="#" data-user-id="{{ user.sipgate_user }}" data-user-caller="{{ user.caller}}"  data-user-phone-number="{{ user.phone_number}}" data-user-name="{{ user.name }} ">{{ user.name }}</a>
+              {% endfor %}
             </div>
           </div>
-        </div>
-      </div>
+          
+          {% if context.user_data %}
+            <div class="row">
+              <div class="col-md-4">
+                <p class="p-4"><img style="border-radius: 50%; width:50%" src="https://cdn-icons-png.flaticon.com/512/21/21104.png"></p>
+              </div>
+              <div class="col-md-8">
+                <p><strong>ID:</strong> <span id="userid">{{ context.user_data.0.sipgate_user }}</span></p>
+                <p><strong>Name:</strong> <span id="username">{{ context.user_data.0.name }}</span></p>
+                <p><strong>Phone Number:</strong> <span id="phonenumber">{{ context.user_data.0.phone_number }}</span></p>
+                <p><strong>Caller:</strong><span id="caller"> {{ context.user_data.0.caller }}</span></p>
+                <p class="d-none "><strong>Alias Name:</strong> {{ context.user_data.0.alias_name }}</p>
+                <p class="d-none "><strong>Sipgate User Token:</strong> {{ context.user_data.0.sipgate_user_token }}</p>
+              </div>
+            </div>
+          {% endif %}
     </div>
+          </div>
+      </div>
 
     <div class="container mt-5 w-50  ">
       <div class="input-group justify-content-center">
@@ -45,87 +62,137 @@
       <h3 class="mb-4 display-5">SIPgate Contacts</h3>
       <table class="table table-striped">
         <thead class="thead-dark">
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
+          <tr>
+            <th>Name</th>
                 <th>Phone Number</th>
             </tr>
-        </thead>
+          </thead>
         <tbody id="contactsTableBody">
-            {% for item in context.items %}
-                <tr>
-                    <td>{{ item.name|default:"-" }}</td>
-                    <td>{{ item.emails.0|default:"-" }}</td>
-                    <td class="d-flex justify-content-between align-items-center text-center">
-                      {{ item.landline.0|default:"-" }}
-                      <button type="button" class="btn btn-primary" onclick="copyText('{{ item.landline.0|default:"-" }}')">
-                          <i class="fas fa-phone-alt"></i>
-                      </button>
-                  </td>
-                </tr>
-            {% endfor %}
+          {% for item in context.contact_data %}
+          <tr>
+            <td>{{ item.name|default:"-" }}</td>
+            <td class="d-flex justify-content-between align-items-center text-center">
+              {{ item.phone_number|default:"-" }}
+              <button type="button" class="btn btn-primary" onclick="copyText('{{ item.phone_number|default:"-" }}')">
+                <i class="fas fa-phone-alt"></i>
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
-    
+      </table>
+      
     </div>
   </div>
   {% include 'footer.html' %}
-  {% comment %} <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script> {% endcomment %}
-  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-
-  
   <script>
     function copyText(text) {
       document.getElementById('phoneInput').value = text;
   }
-    function makeApiCall(phoneNumber) {
-      console.log('API call initiated for phone number:', phoneNumber);
+  $(document).ready(function () {
+    function updateUserInformation(userId, userName, userPhoneNumber, userCaller) {
+      var csrftoken = getCookie('csrftoken');
+      console.log('Updating user information for ID:', userId);
+
+      axios({
+        method: 'POST',
+        url: '/',
+        headers: {
+          'X-CSRFToken': csrftoken,
+          'Content-Type': 'application/json',
+        },
+        data: {
+          'user_id': userId,
+        },
+      })
+      .then(function (response) {
+        console.log('Success response:', response);
+        var userData = response.data;
+        updateDOM(userData);
+        sessionStorage.setItem('userData', JSON.stringify({
+          id: userId,
+          name: userName,
+          phone_number: userPhoneNumber,
+          caller: userCaller,
+        }));
+        location.reload();
+      })
+      .catch(function (error) {
+        console.error('Error updating user information:', error);
+        console.log('Error response:', error.response); 
+      });
     }
 
-    $(document).ready(function () {
+    var storedUserData = sessionStorage.getItem('userData');
+    if (storedUserData) {
+      storedUserData = JSON.parse(storedUserData);
+      updateDOM(storedUserData);
+    }
+
+    $('.user-option').on('click', function (e) {
+      e.preventDefault();
+      var userId = $(this).data('user-id');
+      var userName = $(this).data('user-name');
+      var userPhoneNumber = $(this).data('user-phone-number');
+      var userCaller = $(this).data('user-caller');
+      updateUserInformation(userId, userName, userPhoneNumber, userCaller);
+      console.log(userId + ': ' + userName);
+    });
+
+    function updateDOM(userData) {
+      $('#userid').text(userData.id); 
+      $('#username').text(userData.name);
+      $('#phone-number').text(userData.phone_number);
+      $('#caller').text(userData.caller);
+    }
+
+
+      $('#callButton').on('click', function () {
+        var phoneNumber = $('#phoneInput').val();
+  var userid = $('#userid').text();
+  var username = $('#username').text();
+  console.log(userid, username,phoneNumber)
+  if (phoneNumber.trim() !== '') {
+      var csrftoken = getCookie('csrftoken');
+      axios({
+          method: 'post',
+          url: '/outgoing-call/',
+          headers: {
+              'X-CSRFToken': csrftoken,
+          },
+          data: {
+              'callee': phoneNumber,
+              'userid': userid,
+              'username': username,
+          },
+      })
+      .then(function (data) {
+          console.log('Outgoing call success:', data);
+      })
+      .catch(function (error) {
+          console.error('Error making outgoing call:', error);
+      });
+  } else {
+      alert('Please enter a phone number');
+  }
+});
+      
       function getCookie(name) {
-          var cookieValue = null;
+        var cookieValue = null;
           if (document.cookie && document.cookie !== '') {
               var cookies = document.cookie.split(';');
               for (var i = 0; i < cookies.length; i++) {
-                  var cookie = jQuery.trim(cookies[i]);
-                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                var cookie = jQuery.trim(cookies[i]);
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
                       cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                       break;
+                    }
                   }
+                }
+                return cookieValue;
               }
-          }
-          return cookieValue;
-      }
-  
-      $('#callButton').on('click', function () {
-          var phoneNumber = $('#phoneInput').val();
-          if (phoneNumber.trim() !== '') {
-              var csrftoken = getCookie('csrftoken');
-              $.ajax({
-                  type: 'POST',
-                  url: '/outgoing-call/',
-                  dataType: 'json',
-                  data: {
-                      'callee': phoneNumber
-                  },
-                  beforeSend: function (xhr) {
-                      xhr.setRequestHeader('X-CSRFToken', csrftoken);
-                  },
-                  success: function (data) {
-                      console.log('Outgoing call success:', data);
-                  },
-                  error: function (error) {
-                      console.error('Error making outgoing call:', error);
-                  }
-              });
-          } else {
-              alert('Please enter a phone number');
-          }
-      });
-  });
-
+              
+});
   </script>
-  
 </body>
 </html>

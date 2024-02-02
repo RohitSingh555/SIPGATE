@@ -13,35 +13,42 @@
         <table class="table table-bordered table-hover">
             <thead class="thead-dark">
                 <tr>
-                    <th>ID</th>
-                    <th>Event</th>
-                    <th>From Number</th>
-                    <th>To Number</th>
-                    <th>Direction</th>
-                    <th>Call ID</th>
-                    <th>User</th>
-                    <th>User Ids</th>
-                    <th>Other User Ids</th>
-                    <th>Full User Ids</th>
+                    <th>No.</th>
+                    <th>Caller</th>
+                    <th>Device</th>
+                    <th>Duration</th>
+                    <th>Date</th>
+                    <th>Call Type</th>
+                    <th>Caller ID</th>
+                    <th>Called On Number</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
-                {% for call in calls_data %}
+                {% for log, result in logs_data %}
                     <tr>
-                        <td>{{ call.id }}</td>
-                        <td>{{ call.event }}</td>
-                        <td>{{ call.from_number }}</td>
-                        <td>{{ call.to_number }}</td>
-                        <td>{{ call.direction }}</td>
-                        <td>{{ call.call_id }}</td>
-                        <td>{{ call.user }}</td>
-                        <td>{{ call.user_id_list }}</td>
-                        <td>{{ call.user_id_list1 }}</td>
-                        <td>{{ call.full_user_id_list }}</td>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ log.caller }}</td>
+                        <td>{{ log.device.device_id }}</td>
+                        <td>{{ log.duration }}</td>
+                        <td>{{ log.date }}</td>
+                        <td>
+                            {% if log.call_type %}
+                            Outgoing
+                            {% else %}
+                            Incoming
+                            {% endif %}
+                        </td>
+                        <td>{{ log.caller_id }}</td>
+                        <td>{{ log.called_on_number }}</td>
+                        <td>{{ result }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
+            
+            
         </table>
+        
     </div>
     {% include 'footer.html' %}
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
