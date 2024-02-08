@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,10 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <meta charset="utf-8">
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="{% static 'app.js' %}"></script>
 </head>
 <body>
   {% include 'navbar.html' %}
@@ -32,15 +34,17 @@
           {% if context.user_data %}
             <div class="row">
               <div class="col-md-4">
-                <p class="p-4"><img style="border-radius: 50%; width:50%" src="https://cdn-icons-png.flaticon.com/512/21/21104.png"></p>
+                <p class="p-4"><i style="font-size:120px" class="fas fa-user"></i></p>
               </div>
               <div class="col-md-8">
                 <p><strong>ID:</strong> <span id="userid">{{ context.user_data.0.sipgate_user }}</span></p>
                 <p><strong>Name:</strong> <span id="username">{{ context.user_data.0.name }}</span></p>
                 <p><strong>Phone Number:</strong> <span id="phonenumber">{{ context.user_data.0.phone_number }}</span></p>
-                <p><strong>Caller:</strong><span id="caller"> {{ context.user_data.0.caller }}</span></p>
-                <p class="d-none "><strong>Alias Name:</strong> {{ context.user_data.0.alias_name }}</p>
-                <p class="d-none "><strong>Sipgate User Token:</strong> {{ context.user_data.0.sipgate_user_token }}</p>
+                <p><strong>Caller: </strong><span id="caller"> {{ context.user_data.0.caller }}</span></p>
+                <p class="d-none "><strong>Alias Name:</strong> <span  id="caller_id">0211-87973990565</span></p>
+                <p class="d-none "><strong>id:</strong> <span  id="default_id">{{ context.user_data.0.id }}</span></p>
+                <p class="d-none "><strong>Sipgate User Token:</strong> <span id="user_token">{{ context.user_data.0.sipgate_user_token }}</span></p>
+                <p class="d-none"><strong>Sipgate User Token:</strong> <span id="user_token_id">{{ context.user_data.0.sipgate_user_token_id }}</span></p>
               </div>
             </div>
           {% endif %}
@@ -89,7 +93,9 @@
     function copyText(text) {
       document.getElementById('phoneInput').value = text;
   }
+
   $(document).ready(function () {
+
     function updateUserInformation(userId, userName, userPhoneNumber, userCaller) {
       var csrftoken = getCookie('csrftoken');
       console.log('Updating user information for ID:', userId);
@@ -107,6 +113,7 @@
       })
       .then(function (response) {
         console.log('Success response:', response);
+        
         var userData = response.data;
         updateDOM(userData);
         sessionStorage.setItem('userData', JSON.stringify({
@@ -130,10 +137,22 @@
     }
 
     $('.user-option').on('click', function (e) {
-      e.preventDefault();
       var userId = $(this).data('user-id');
       var userName = $(this).data('user-name');
       var userPhoneNumber = $(this).data('user-phone-number');
+      var user_token = $('#user_token').text();
+      var user_token_id = $('#user_token_id').text();
+      var caller_id = $('#caller_id').text();
+      var caller = $('#caller').text();
+      console.log(caller_id)
+      var default_id = $('#default_id').text();
+      var current_caller = setCookie('caller', caller);
+      var sipgate_token = setCookie('sipgate-token', user_token);
+      var sipgate_token_id = setCookie('sipgate-token_id', user_token_id);
+      var active_user_number = setCookie('active_user_number', userPhoneNumber);
+      var caller_id_no = setCookie('caller_id', caller_id);
+      var default_id_user = setCookie('default_id', default_id);
+      
       var userCaller = $(this).data('user-caller');
       updateUserInformation(userId, userName, userPhoneNumber, userCaller);
       console.log(userId + ': ' + userName);
@@ -145,52 +164,38 @@
       $('#phone-number').text(userData.phone_number);
       $('#caller').text(userData.caller);
     }
-
+    
 
       $('#callButton').on('click', function () {
         var phoneNumber = $('#phoneInput').val();
   var userid = $('#userid').text();
   var username = $('#username').text();
-  console.log(userid, username,phoneNumber)
+  var user_token = $('#user_token').text();
   if (phoneNumber.trim() !== '') {
-      var csrftoken = getCookie('csrftoken');
-      axios({
-          method: 'post',
+    var csrftoken = getCookie('csrftoken');
+    axios({
+      method: 'post',
           url: '/outgoing-call/',
           headers: {
-              'X-CSRFToken': csrftoken,
+            'X-CSRFToken': csrftoken,
           },
           data: {
-              'callee': phoneNumber,
+            'callee': phoneNumber,
               'userid': userid,
               'username': username,
-          },
+              'user_token': user_token,
+            },
       })
       .then(function (data) {
-          console.log('Outgoing call success:', data);
+        console.log('Outgoing call success:', data);
       })
       .catch(function (error) {
           console.error('Error making outgoing call:', error);
       });
-  } else {
+    } else {
       alert('Please enter a phone number');
-  }
+    }
 });
-      
-      function getCookie(name) {
-        var cookieValue = null;
-          if (document.cookie && document.cookie !== '') {
-              var cookies = document.cookie.split(';');
-              for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                      break;
-                    }
-                  }
-                }
-                return cookieValue;
-              }
               
 });
   </script>

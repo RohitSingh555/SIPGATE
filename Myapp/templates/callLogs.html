@@ -1,51 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Call Logs</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-</head>
-<body>
-  {% include 'navbar.html' %}
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
 
-  <div class="container mt-5 vh-100 ">
-    <h1 class="mb-4">Call Logs</h1>
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover">
-          <thead class="thead-dark">
-              <tr>
-                  <th>ID</th>
-                  <th>Source</th>
-                  <th>Target</th>
-                  <th>Type</th>
-                  <th>Direction</th>
-                  <th>Status</th>
-                  <th>Transcription</th>
-                  <th>Duration</th>
-                  
-              </tr>
+    <div class="container mt-5 vh-100">
+      <h1 class="mb-4">Call Logs</h1>
+      <div
+        class="table-responsive table-container h-75"
+        style="overflow-y: hidden"
+      >
+        <table class="table table-bordered table-hover">
+          <thead class="thead-dark sticky-top">
+            <tr>
+              <th>ID</th>
+              <th>Source</th>
+              <th>Target</th>
+              <th>Type</th>
+              <th>Direction</th>
+              <th>Status</th>
+              <th>Transcription</th>
+              <th>Duration</th>
+            </tr>
           </thead>
           <tbody>
-              {% for log in call_logs %}
-                  <tr>
-                      <td>{{ log.id }}</td>
-                      <td>{{ log.source }}</td>
-                      <td>{{ log.target }}</td>
-                      <td>{{ log.type }}</td>
-                      <td>{{ log.direction }}</td>
-                      <td>{{ log.status }}</td>
-                      <td>{{ log.transcription }}</td>
-                      <td>{{ log.duration.0 }} minutes {{ log.duration.1 }} seconds</td>
-                  </tr>
-              {% endfor %}
+            {% for log in call_logs %}
+            <tr>
+              <td>{{ log.id }}</td>
+              <td>{{ log.source }}</td>
+              <td>{{ log.target }}</td>
+              <td>{{ log.type }}</td>
+              <td>{{ log.direction }}</td>
+              <td>{{ log.status }}</td>
+              <td>{{ log.transcription }}</td>
+              <td>{{ log.duration.0 }} minutes {{ log.duration.1 }} seconds</td>
+            </tr>
+            {% endfor %}
           </tbody>
-      </table>
+        </table>
+      </div>
     </div>
-  </div>
-  {% include 'footer.html' %}
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-</body>
+    {% include 'footer.html' %}
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
 </html>

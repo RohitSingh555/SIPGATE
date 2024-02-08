@@ -3,6 +3,7 @@ from .models import *
 
 # Register your models here.
 admin.site.register(SipgateUser)
-admin.site.register(CallLog)
+admin.site.register(Call)
+# admin.site.register(CallLog)
 admin.site.register(CompanyContact)
 admin.site.register(Devices)

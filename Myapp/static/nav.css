@@ -1,0 +1,13 @@
+.custom-navbar-nav {
+  font-size: 18px; /* Adjust the font size as needed */
+}
+
+.custom-navbar-nav .nav-link {
+  padding: 10px 15px; /* Adjust the padding as needed */
+}
+
+.custom-navbar-nav .nav-item.active {
+  background-color: #007bff;
+  color: white;
+  font-weight: 500 !important;
+}
