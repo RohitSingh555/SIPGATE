@@ -80,8 +80,10 @@ To manage SIPGATE users, follow these steps:
    - Save the user.
   
    - For example these two users can be there
-Tim_01	Tim cook	+4915207181215	4921187973990565	0211-87973990565	c533fb19-c9f9-412b-a37e-b91aeb9b1519	token-5KIN89
-Sarvesh_01	Tim Daniel SipGate	+4921187973990565	4921187973990566	0211-87973990565	c533fb19-c9f9-412b-a37e-b91aeb9b1519	token-5KIN89
+     | User ID   | Display Name    | Phone Number     | Caller ID          | API Token                               | Token ID    |
+     |-----------|-----------------|------------------|--------------------|-----------------------------------------|-------------|
+     | Tim_01    | Tim Cook        | +4915207181215   | 0211-87973990565  | c533fb19-c9f9-412b-a37e-b91aeb9b1519    | token-5KIN89|
+     | Sarvesh_01| Tim Daniel SipGate | +4921187973990565 | 0211-87973990565 | c533fb19-c9f9-412b-a37e-b91aeb9b1519    | token-5KIN89|
 
 ### 2. Managing Devices
 
@@ -97,8 +99,10 @@ To manage devices, follow these steps:
    - Save the device.
   
    - for example these were our devices
-e0	0211-87973990565	1
-e0	0211-87973990565	2
+     | Device ID | Caller ID        | Assigned User |
+     |-----------|------------------|---------------|
+     | e0        | 0211-87973990565 | 1             |
+     | e1        | 0211-87973990565 | 2             |
 
 ### 3. Making Outgoing Calls
 
@@ -111,9 +115,11 @@ To make outgoing calls, follow these steps:
 2.  **Create Contacts**
     - Can use our homepage contact form or can use the admin panel
     for example these were our contacts: name and phone_number fields
-Tim Da	+4915207181215
-Test user	0211-87973990565
-Sarvesh	0211-87973990566
+    | Name      | Phone Number     |
+    |-----------|------------------|
+    | Tim Da    | +4915207181215   |
+    | Test user | 0211-87973990565 |
+    | Sarvesh   | 0211-87973990566 |
 
 4. **Enter Phone Number:**
    - Enter the phone number you wish to call into the designated field.
