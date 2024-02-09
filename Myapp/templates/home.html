@@ -26,7 +26,15 @@
             </button>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
               {% for user in context.user_data %}
-                <a class="dropdown-item user-option" href="#" data-user-id="{{ user.sipgate_user }}" data-user-caller="{{ user.caller}}"  data-user-phone-number="{{ user.phone_number}}" data-user-name="{{ user.name }} ">{{ user.name }}</a>
+                <a class="dropdown-item user-option" href="#" 
+                   data-user-id="{{ user.sipgate_user }}" 
+                   data-user-caller="{{ user.caller}}"  
+                   data-user-phone-number="{{ user.phone_number}}" 
+                   data-user-name="{{ user.name }}" 
+                   data-user-token="{{ user.sipgate_user_token }}"
+                   data-user-token-id="{{ user.sipgate_user_token_id }}"
+                   data-caller-id="{{ user.caller_id }}"
+                   data-default-id="{{ user.id }}">{{ user.name }}</a>
               {% endfor %}
             </div>
           </div>
@@ -39,9 +47,9 @@
               <div class="col-md-8">
                 <p><strong>ID:</strong> <span id="userid">{{ context.user_data.0.sipgate_user }}</span></p>
                 <p><strong>Name:</strong> <span id="username">{{ context.user_data.0.name }}</span></p>
-                <p><strong>Phone Number:</strong> <span id="phonenumber">{{ context.user_data.0.phone_number }}</span></p>
+                <p class="d-none"><strong>Phone Number:</strong> <span id="phonenumber">{{ context.user_data.0.phone_number }}</span></p>
                 <p><strong>Caller: </strong><span id="caller"> {{ context.user_data.0.caller }}</span></p>
-                <p class="d-none "><strong>Alias Name:</strong> <span  id="caller_id">0211-87973990565</span></p>
+                <p><strong>Caller ID:</strong> <span  id="caller_id">{{ context.user_data.0.caller_id }}</span></p>
                 <p class="d-none "><strong>id:</strong> <span  id="default_id">{{ context.user_data.0.id }}</span></p>
                 <p class="d-none "><strong>Sipgate User Token:</strong> <span id="user_token">{{ context.user_data.0.sipgate_user_token }}</span></p>
                 <p class="d-none"><strong>Sipgate User Token:</strong> <span id="user_token_id">{{ context.user_data.0.sipgate_user_token_id }}</span></p>
@@ -49,10 +57,10 @@
             </div>
           {% endif %}
     </div>
-          </div>
+  </div>
       </div>
 
-    <div class="container mt-5 w-50  ">
+      <div class="container mt-5 w-50  ">
       <div class="input-group justify-content-center">
         <input type="tel" class="form-control" id="phoneInput" placeholder="Enter phone number">
         <div class="input-group-append">
@@ -63,28 +71,85 @@
       </div>
     </div>
     <div class="container mt-5 ">
+      <div class="d-flex flex-row justify-content-between align-items-center ">
       <h3 class="mb-4 display-5">SIPgate Contacts</h3>
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addContactModal">
+        Add Contact
+      </button>
+    </div>
       <table class="table table-striped">
         <thead class="thead-dark">
           <tr>
             <th>Name</th>
-                <th>Phone Number</th>
-            </tr>
-          </thead>
+            <th>Phone Number</th>
+          </tr>
+        </thead>
         <tbody id="contactsTableBody">
           {% for item in context.contact_data %}
-          <tr>
-            <td>{{ item.name|default:"-" }}</td>
-            <td class="d-flex justify-content-between align-items-center text-center">
-              {{ item.phone_number|default:"-" }}
-              <button type="button" class="btn btn-primary" onclick="copyText('{{ item.phone_number|default:"-" }}')">
-                <i class="fas fa-phone-alt"></i>
-              </button>
-            </td>
-          </tr>
+            <tr>
+              <td>{{ item.name|default:"-" }}</td>
+              <td class="d-flex justify-content-between align-items-center text-center">
+                {{ item.phone_number|default:"-" }}
+                <button type="button" class="btn btn-primary" onclick="copyText('{{ item.phone_number|default:"-" }}')">
+                  <i class="fas fa-phone-alt"></i>
+                </button>
+              </td>
+            </tr>
           {% endfor %}
         </tbody>
       </table>
+      
+      <!-- Modal -->
+      <div class="modal fade" id="addContactModal" tabindex="-1" role="dialog" aria-labelledby="addContactModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addContactModalLabel">Add Contact</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <!-- Contact form -->
+              <form id="addContactForm">
+                <div class="form-group">
+                  <label for="firstname">Name</label>
+                  <input type="text" class="form-control" id="firstname" name="firstname" required>
+                </div>
+                {% comment %} <div class="form-group">
+                  <label for="lastname">Last Name</label>
+                  <input type="text" class="form-control" id="lastname" name="lastname" required>
+                </div>
+                <div class="form-group">
+                  <label for="organization">Organization</label>
+                  <input type="text" class="form-control" id="organization" name="organization">
+                </div>
+                <div class="form-group">
+                  <label for="scope">Scope</label>
+                  <input type="text" class="form-control" id="scope" name="scope">
+                </div>
+                <div class="form-group">
+                  <label for="address">Address</label>
+                  <input type="text" class="form-control" id="address" name="address">
+                </div>
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input type="email" class="form-control" id="email" name="email">
+                </div> {% endcomment %}
+                <div class="form-group">
+                  <label for="phone">Phone Number</label>
+                  <input type="tel" class="form-control" id="phone" name="phone">
+                </div>
+              </form>
+              
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" id="saveContactBtn">Save Contact</button>
+            </div>
+          </div>
+        </div>
+      </div>
       
     </div>
   </div>
@@ -92,112 +157,148 @@
   <script>
     function copyText(text) {
       document.getElementById('phoneInput').value = text;
-  }
-
-  $(document).ready(function () {
-
-    function updateUserInformation(userId, userName, userPhoneNumber, userCaller) {
-      var csrftoken = getCookie('csrftoken');
-      console.log('Updating user information for ID:', userId);
-
-      axios({
-        method: 'POST',
-        url: '/',
-        headers: {
-          'X-CSRFToken': csrftoken,
-          'Content-Type': 'application/json',
-        },
-        data: {
-          'user_id': userId,
-        },
-      })
-      .then(function (response) {
-        console.log('Success response:', response);
-        
-        var userData = response.data;
-        updateDOM(userData);
-        sessionStorage.setItem('userData', JSON.stringify({
-          id: userId,
-          name: userName,
-          phone_number: userPhoneNumber,
-          caller: userCaller,
-        }));
-        location.reload();
-      })
-      .catch(function (error) {
-        console.error('Error updating user information:', error);
-        console.log('Error response:', error.response); 
-      });
     }
 
-    var storedUserData = sessionStorage.getItem('userData');
-    if (storedUserData) {
-      storedUserData = JSON.parse(storedUserData);
-      updateDOM(storedUserData);
-    }
-
-    $('.user-option').on('click', function (e) {
-      var userId = $(this).data('user-id');
-      var userName = $(this).data('user-name');
-      var userPhoneNumber = $(this).data('user-phone-number');
-      var user_token = $('#user_token').text();
-      var user_token_id = $('#user_token_id').text();
-      var caller_id = $('#caller_id').text();
-      var caller = $('#caller').text();
-      console.log(caller_id)
-      var default_id = $('#default_id').text();
-      var current_caller = setCookie('caller', caller);
-      var sipgate_token = setCookie('sipgate-token', user_token);
-      var sipgate_token_id = setCookie('sipgate-token_id', user_token_id);
-      var active_user_number = setCookie('active_user_number', userPhoneNumber);
-      var caller_id_no = setCookie('caller_id', caller_id);
-      var default_id_user = setCookie('default_id', default_id);
-      
-      var userCaller = $(this).data('user-caller');
-      updateUserInformation(userId, userName, userPhoneNumber, userCaller);
-      console.log(userId + ': ' + userName);
-    });
-
-    function updateDOM(userData) {
-      $('#userid').text(userData.id); 
-      $('#username').text(userData.name);
-      $('#phone-number').text(userData.phone_number);
-      $('#caller').text(userData.caller);
-    }
     
+    document.getElementById('saveContactBtn').addEventListener('click', function() {
+      var name = document.getElementById('firstname').value;
+      var phone = document.getElementById('phone').value;
+      console.log(name, phone);
+  
+      var csrftoken = getCookie('csrftoken');
+      fetch('save-contact/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken
+          },
+          body: JSON.stringify({ name: name, phone: phone ,csrftoken: csrftoken })
+      })
+      .then(function(response) {
+          if (!response.ok) {
+              throw new Error('Network response was not ok');
+          }
+          return response.json();
+      })
+      .then(function(data) {
+          console.log('Contact saved successfully:', data);
+          $('#addContactModal').modal('hide');
+      })
+      .catch(function(error) {
+          console.error('Error saving contact:', error);
+      });
+  });
+  
+
+    $(document).ready(function () {
+
+      function updateUserInformation(userId, userName, userPhoneNumber, userCaller, userToken, userTokenId, callerId, defaultId) {
+        // Set cookies
+        setCookie('caller', userCaller);
+        setCookie('sipgate-token', userToken);
+        setCookie('sipgate-token_id', userTokenId);
+        setCookie('active_user_number', userPhoneNumber);
+        setCookie('caller_id', callerId);
+        setCookie('default_id', defaultId);
+
+        var csrftoken = getCookie('csrftoken');
+        console.log('Updating user information for ID:', userId);
+
+        axios({
+          method: 'POST',
+          url: '/',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json',
+          },
+          data: {
+            'user_id': userId,
+          },
+        })
+        .then(function (response) {
+          console.log('Success response:', response);
+
+          var userData = response.data;
+          updateDOM(userData);
+          sessionStorage.setItem('userData', JSON.stringify({
+            id: userId,
+            name: userName,
+            phone_number: userPhoneNumber,
+            caller: userCaller,
+          }));
+          location.reload();
+        })
+        .catch(function (error) {
+          console.error('Error updating user information:', error);
+          console.log('Error response:', error.response);
+        });
+      }
+
+      var storedUserData = sessionStorage.getItem('userData');
+      if (storedUserData) {
+        storedUserData = JSON.parse(storedUserData);
+        updateDOM(storedUserData);
+      }
+
+      $('.user-option').on('click', function (e) {
+        var userId = $(this).data('user-id');
+        var userName = $(this).data('user-name');
+        var userPhoneNumber = $(this).data('user-phone-number');
+        var userToken = $(this).data('user-token');
+        var userTokenId = $(this).data('user-token-id');
+        var callerId = $(this).data('caller-id');
+        var defaultId = $(this).data('default-id');
+        var userCaller = $(this).data('user-caller');
+
+        updateUserInformation(userId, userName, userPhoneNumber, userCaller, userToken, userTokenId, callerId, defaultId);
+        console.log(userId + ': ' + userName);
+      });
+
+      function updateDOM(userData) {
+        $('#userid').text(userData.id);
+        $('#username').text(userData.name);
+        $('#phone-number').text(userData.phone_number);
+        $('#caller').text(userData.caller);
+        $('#caller-id').text(userData.caller_id);
+        $('#user-token').text(userData.user_token); 
+      }
+      
 
       $('#callButton').on('click', function () {
         var phoneNumber = $('#phoneInput').val();
-  var userid = $('#userid').text();
-  var username = $('#username').text();
-  var user_token = $('#user_token').text();
-  if (phoneNumber.trim() !== '') {
-    var csrftoken = getCookie('csrftoken');
-    axios({
-      method: 'post',
-          url: '/outgoing-call/',
-          headers: {
-            'X-CSRFToken': csrftoken,
-          },
-          data: {
-            'callee': phoneNumber,
+        var userid = $('#userid').text();
+        var username = $('#username').text();
+        var userToken = $('#user_token').text();
+
+        if (phoneNumber.trim() !== '') {
+          var csrftoken = getCookie('csrftoken');
+          axios({
+            method: 'POST',
+            url: '/outgoing-call/',
+            headers: {
+              'X-CSRFToken': csrftoken,
+            },
+            data: {
+              'callee': phoneNumber,
               'userid': userid,
               'username': username,
-              'user_token': user_token,
+              'user_token': userToken,
             },
-      })
-      .then(function (data) {
-        console.log('Outgoing call success:', data);
-      })
-      .catch(function (error) {
-          console.error('Error making outgoing call:', error);
+          })
+          .then(function (data) {
+            console.log('Outgoing call success:', data);
+          })
+          .catch(function (error) {
+            console.error('Error making outgoing call:', error);
+          });
+        } else {
+          alert('Please enter a phone number');
+        }
       });
-    } else {
-      alert('Please enter a phone number');
-    }
-});
-              
-});
+
+    
+
+    });
   </script>
 </body>
 </html>

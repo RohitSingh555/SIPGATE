@@ -1,5 +1,13 @@
 
-
+function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + value + expires + "; path=/";
+  }
 
 
 function getCookie(name) {
@@ -17,36 +25,7 @@ function getCookie(name) {
             return cookieValue;
         }
 
-        // function pollForIncomingCall() {
-        //   setInterval(function () {
-        //     axios
-        //       .get("/check-incoming-call/")
-        //       .then(function (response) {
-        //         if (response.data.incomingCall) {
-        //           $("#incomingCallModal").modal("show");
-    
-        //           if (response.data.message === 'In contacts') {
-        //             $("#incomingCallModal .modal-body").html(
-        //               '<h5 class="font-weight-bold">You have an incoming call from</h5>' +
-        //               '<div class="d-flex align-items-center">' +
-        //               '<h4 class="me-3"><i class="fas fa-user"></i>' + ' ' + response.data.ContactName + '</h4>' +
-        //               '<h6 class="fw-bold">' + '&nbsp;' + response.data.contactNumber + '</h6>' +
-        //               '</div>'
-        //             );
-        //           } else {
-        //             $("#incomingCallModal .modal-body").html(
-        //               '<h4 class="font-weight-bold">Incoming call from an Unknown Number!</h4>' +
-        //               '<h6 class="fw-bold">Contact Number: ' + response.data.contactNumber + '</h6>'
-        //             );
-        //           }
-    
-        //         }
-        //       })
-        //       .catch(function (error) {
-        //         console.error("Error polling for incoming call:", error);
-        //       });
-        //   }, 5000);
-        // }
+        // 
     
         // // Rest of your existing JavaScript code remains unchanged
     

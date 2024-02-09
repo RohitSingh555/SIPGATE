@@ -12,32 +12,21 @@ from itertools import zip_longest
 import xml.etree.ElementTree as ET
 
 
-ON_HANGUP_URL = "https://ba4b-156-146-33-82.ngrok-free.app" + "/on-hangup/"
-# ON_HANGUP_URL = "http://127.0.0.1:8500" + "/on-hangup"
+# ON_HANGUP_URL = "https://de99-138-199-19-168.ngrok-free.app" + "/on-hangup/"
+ON_HANGUP_URL = "http://127.0.0.1:8500" + "/on-hangup"
 
             
 @csrf_exempt
 def home(request):
     if request.method == "POST":
         try:
-            # selected_user_id = request.COOKIES.get('sipgate-token') 
             data = json.loads(request.body.decode('utf-8'))
-            selected_user_id = data.get('user_id')
-            selected_user = str(selected_user_id) 
-            print(selected_user)
-            if selected_user.isdigit():
-                user_data = get_object_or_404(SipgateUser, id=int(selected_user))
-                user_data = [user_data]  
-            else:
-                user_data = []
-            
+            selected_user_default_id = data.get('default_id')
+            user_data = SipgateUser.objects.filter(id=selected_user_default_id)
             contact_data = CompanyContact.objects.all()
-            device_data = Devices.objects.all()
-            print(user_data)
             context = {
                 'contact_data': contact_data,
                 'user_data': user_data,
-                'device_data': device_data,
             }
             return render(request, 'home.html', {'context': context})
         except Exception as e:
@@ -45,14 +34,13 @@ def home(request):
             return HttpResponse("Bad Request", status=400)
     else:
         all_users = SipgateUser.objects.all()
-
         context = {
             'contact_data': CompanyContact.objects.all(),
             'user_data': all_users,
-            'device_data': Devices.objects.all(),
         }
         return render(request, 'home.html', {'context': context})
-
+    
+    
 @csrf_exempt
 def outgoing_call(request):
     if request.method == 'POST':
@@ -63,8 +51,8 @@ def outgoing_call(request):
             # caller_req = data.get('caller')
             token = request.COOKIES.get('sipgate-token')
             token_id = request.COOKIES.get('sipgate-token_id')
-            caller_id = "0211-87973990565"
-            caller = "e0"
+            caller_id = request.COOKIES.get('caller_id')
+            caller = request.COOKIES.get('caller')
             default_id = request.COOKIES.get('default_id')
             # active_user_number = request.COOKIES.get('active_user_number')
             credentials = f"{token_id}:{token}"
@@ -181,11 +169,10 @@ incoming_call_flag = False
 
 @csrf_exempt
 def incoming_call(request):
-    global incoming_call_flag  # Ensure global scope for the flag
+    global incoming_call_flag  
 
     if request.method == "POST":
         try:
-            # Extract data from form data
             event = request.POST.get('event')
             from_number = request.POST.get('from')
             to_number = request.POST.get('to')
@@ -214,15 +201,27 @@ def incoming_call(request):
                 else:
                     print("outgoing - No company contact found.")
                     company_contact = None  
+                    
+            if direction == "in":
+                sipuser_matching = SipgateUser.objects.filter(phone_number__icontains=from_number)
+                if sipuser_matching.exists():
+                    sipuser = sipuser_matching.first()
+                    print(sipuser.id)
+                else:
+                    print("Incoming - No matching company contact found.")
+                    sipuser = None  
+            else:
+                sipuser_matching = SipgateUser.objects.filter(phone_number__icontains=to_number)
+                if sipuser_matching.exists():
+                    sipuser = sipuser_matching.first()
+                    print(sipuser.id)
+                else:
+                    print("outgoing - No company contact found.")
+                    sipuser = None  
                 
             
             print(direction)
             try:
-                testvar = SipgateUser.objects.filter(caller="w0")
-                if testvar.exists():
-                    sipuser = testvar.first()
-                else:
-                    sipuser = None
                     
                 call = Call(
                     active_user=sipuser,
@@ -256,29 +255,26 @@ def incoming_call(request):
         return JsonResponse({"message": "Method not allowed"}, status=405)
 
 
+def check_incoming_call(request):
+    global incoming_call_flag
+    phone_numbers = set(CompanyContact.objects.values_list('phone_number', flat=True))
+    has_incoming_call = incoming_call_flag
+    incoming_call_flag = False
 
+    response_data = {"incomingCall": has_incoming_call}
 
+    if has_incoming_call:
+        latest_incoming_call = Call.objects.filter(direction='in').latest('date')
+        if latest_incoming_call.from_number in phone_numbers:
+            response_data["message"] = "In contacts"
+            response_data["contactNumber"] = latest_incoming_call.from_number
+            contact_name = CompanyContact.objects.filter(phone_number=latest_incoming_call.from_number).values_list('name', flat=True).first()
+            response_data["ContactName"] = contact_name if contact_name else "Unknown"
+        else:
+            response_data["contactNumber"] = latest_incoming_call.from_number
+            response_data["message"] = "Unknown"
 
-# def check_incoming_call(request):
-#     global incoming_call_flag
-#     phone_numbers = set(CompanyContact.objects.values_list('phone_number', flat=True))
-#     has_incoming_call = incoming_call_flag
-#     incoming_call_flag = False
-
-#     response_data = {"incomingCall": has_incoming_call}
-
-#     if has_incoming_call:
-#         latest_incoming_call = Call.objects.filter(direction='in').latest('date')
-#         if latest_incoming_call.from_number in phone_numbers:
-#             response_data["message"] = "In contacts"
-#             response_data["contactNumber"] = latest_incoming_call.from_number
-#             contact_name = CompanyContact.objects.filter(phone_number=latest_incoming_call.from_number).values_list('name', flat=True).first()
-#             response_data["ContactName"] = contact_name if contact_name else "Unknown"
-#         else:
-#             response_data["contactNumber"] = latest_incoming_call.from_number
-#             response_data["message"] = "Unknown"
-
-#     return JsonResponse(response_data)
+    return JsonResponse(response_data)
 
 @csrf_exempt
 def on_hangup(request):
@@ -310,3 +306,24 @@ def build_xml_response():
     response.set("onHangup", ON_HANGUP_URL)
     xml_response = ET.tostring(response)
     return xml_response
+
+@csrf_exempt
+def save_contact(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        name = data.get('name')
+        phone = data.get('phone')
+        csrftoken = data.get('csrftoken')
+        print("csrf token", csrftoken)
+        print('Received Name:', name)
+        print('Received Phone:', phone)
+
+        try:
+            CompanyContact.objects.create(name=name, phone_number=phone)
+            print('Contact saved successfully')
+            return JsonResponse({'message': 'Contact saved successfully'})
+        except Exception as e:
+            print('Error saving contact:', e)
+            return JsonResponse({'error': 'Internal Server Error'}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)

@@ -9,5 +9,6 @@ urlpatterns = [
     path('outgoing-call/', views.outgoing_call, name='outgoing_call'),
     path('on-hangup/', views.on_hangup, name='on_hangup'),
     path('incoming-call/', views.incoming_call, name='incoming_call'),
-    # path('check-incoming-call/', views.check_incoming_call, name='check_incoming_call'),
+    path('save-contact/', views.save_contact, name='save_contact'),
+    path('check-incoming-call/', views.check_incoming_call, name='check_incoming_call'),
 ]

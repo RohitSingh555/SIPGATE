@@ -38,59 +38,31 @@
     </div>
   </nav>
 
-  <div class="modal" id="incomingCallModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title">Incoming Call <i class="fas fa-phone-alt call-icon animated"></i></h5>
-        </div>
-        <div class="modal-body">
-          <p class="font-weight-bold">You have an incoming call!</p>
-          <!-- Add additional details here if needed -->
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light text-primary" onclick="snoozeModal()">
-            <i class="fas fa-clock"></i> Snooze
-          </button>
-          <button type="button" class="btn btn-success" data-dismiss="modal" onclick="redirectToCall()">
-            <i class="fas fa-phone-alt"></i> Answer
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
   <style>
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+      background-color: #28a745;
+      color: #fff;
+      padding: 15px;
+      border-radius: 5px;
+    }
+
+    .notification .close-btn {
+      position: absolute;
+      top: -8px;
+      right: 3px;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: bold;
+      cursor: pointer;
+
+    }
+
     .font-weight-bold {
       font-weight: bold;
-    }
-
-    .call-icon {
-      margin-right: 8px;
-      /* Adjust the spacing between the icon and text */
-    }
-
-    /* Animation for the call icon */
-    @keyframes bounce {
-
-      0%,
-      20%,
-      50%,
-      80%,
-      100% {
-        transform: translateY(0);
-      }
-
-      40% {
-        transform: translateY(-15px);
-      }
-
-      60% {
-        transform: translateY(-7px);
-      }
-    }
-
-    .animated {
-      animation: bounce 2s infinite;
     }
   </style>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
@@ -100,7 +72,44 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
+  <script>
+    function showNotification(message) {
+      var notification = $('<div class="notification">')
+        .text(message)
+        .append('<span class="close-btn">&times;</span>');
+      $('body').append(notification);
 
+      notification.find('.close-btn').click(function () {
+        notification.remove();
+      });
+    }
+
+    function pollForIncomingCall() {
+      setInterval(function () {
+        axios
+          .get("/check-incoming-call/")
+          .then(function (response) {
+            if (response.data.incomingCall) {
+              var notificationMessage;
+              if (response.data.message === 'In contacts') {
+                notificationMessage = 'You have an incoming call from ' + response.data.ContactName + ' (' + response.data.contactNumber + ')';
+              } else {
+                notificationMessage = 'Incoming call from an Unknown Number: ' + response.data.contactNumber;
+              }
+              showNotification(notificationMessage);
+            }
+          })
+          .catch(function (error) {
+            console.error("Error polling for incoming call:", error);
+          });
+      }, 5000);
+    }
+
+    $(document).ready(function () {
+      pollForIncomingCall();
+    });
+
+  </script>
 </body>
 
 </html>
