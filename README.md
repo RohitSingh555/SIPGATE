@@ -125,6 +125,42 @@ To make outgoing calls, follow these steps:
    - Enter the phone number you wish to call into the designated field.
    Or click on the call Icon in front of the number given in the SIPgate contacts below to copy that number into the calling field.
 
+### Integrating Ngrok for Call Logging in Django
+
+To seamlessly generate logs for incoming and outgoing calls in your SIPGATE Django application, follow these steps:
+
+1. **Install Ngrok:**
+   - Download Ngrok from the official website or install it via package manager (e.g., Homebrew on macOS). or just directly install ngrok in Django itself and authenticate yourself only then you will be able to run the following commands and steps.
+   - Follow the installation instructions provided for your operating system.
+
+2. **Integrate Ngrok with Django:**
+   - After installation, navigate to your Django project directory.
+   - Start Ngrok alongside your Django server using the command:
+     ```
+     ngrok http <django_server_port>
+     ```
+   - Ngrok will create a tunnel to your local server, providing a forwarding URL.
+
+3. **Update Webhook Endpoints:**
+   - Configure your webhook endpoints to use Ngrok's forwarding URLs. For example:
+     - For incoming calls: `<ngrok_forwarding_url>/incoming-call`
+     - For hangup events: `<ngrok_forwarding_url>/hangup`
+
+4. **Update Allowed Hosts Endpoint:**
+   - In your Django settings (`settings.py`), update the `ALLOWED_HOSTS` variable to include the Ngrok forwarding URL:
+     ```python
+     ALLOWED_HOSTS = ['<ngrok_forwarding_url>', 'localhost', '127.0.0.1']
+     ```
+
+5. **Update Global Variable in Views:**
+   - In your views, define a global variable for Ngrok to ensure consistency across endpoints:
+     ```python
+     NGROK_URL = '<ngrok_forwarding_url>'
+     ```
+
+These steps will ensure that your Django application effectively logs incoming and outgoing calls using Ngrok, allowing for seamless call management and monitoring.
+
+
 5. **Initiate Call:**
    - Click on the call button to initiate the call. The call will be made using the configured SIPGATE user and device.
 
