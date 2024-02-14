@@ -80,10 +80,12 @@ To manage SIPGATE users, follow these steps:
    - Save the user.
   
    - For example these two users can be there
-     | User ID   | Display Name    | Phone Number     | Caller ID          | API Token                               | Token ID    |
-     |-----------|-----------------|------------------|--------------------|-----------------------------------------|-------------|
-     | Tim_01    | Tim Cook        | +4915207181215   | 0211-87973990565  | c533fb19-c9f9-412b-a37e-b91aeb9b1519    | token-5KIN89|
-     | Sarvesh_01| Tim Daniel SipGate | +4921187973990565 | 0211-87973990565 | c533fb19-c9f9-412b-a37e-b91aeb9b1519    | token-5KIN89|
+    | User ID    | Display Name       | Phone Number        | Caller             | Caller ID         | API Token                             | Token ID    |
+|------------|--------------------|---------------------|--------------------|-------------------|---------------------------------------|-------------|
+| Tim_01     | Tim Cook           | +4915207181215      | 49021187973990565  | 0211-87973990565 | c533fb19-c9f9-412b-a37e-b91aeb9b1519  | token-5KIN89|
+| Sarvesh_01 | Tim Daniel SipGate | +4921187973990565   | 49021187973990566  | 0211-87973990565 | c533fb19-c9f9-412b-a37e-b91aeb9b1519  | token-5KIN89|
+|            |                    |                     |                   |                   |                                       |             |
+
 
 ### 2. Managing Devices
 
@@ -155,7 +157,7 @@ To seamlessly generate logs for incoming and outgoing calls in your SIPGATE Djan
 5. **Update Global Variable in Views:**
    - In your views, define a global variable for Ngrok to ensure consistency across endpoints:
      ```python
-     NGROK_URL = '<ngrok_forwarding_url>'
+     ON_HANGUP_URL = '<ngrok_forwarding_url>'
      ```
 
 These steps will ensure that your Django application effectively logs incoming and outgoing calls using Ngrok, allowing for seamless call management and monitoring.
