@@ -87,6 +87,7 @@ To manage SIPGATE users, follow these steps:
 
 
 
+
 ### 2. Managing Devices
 
 To manage devices, follow these steps:
