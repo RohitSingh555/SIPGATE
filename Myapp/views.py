@@ -8,12 +8,12 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 from .models import *
-from itertools import zip_longest
 import xml.etree.ElementTree as ET
-
+from django.db.models import Q
+import re
 
 # ON_HANGUP_URL = "https://de99-138-199-19-168.ngrok-free.app" + "/on-hangup/"
-ON_HANGUP_URL = "http://127.0.0.1:8500" + "/on-hangup"
+ON_HANGUP_URL = "http://127.0.0.1:8500" + "/on-hangup/"
 
             
 @csrf_exempt
@@ -149,20 +149,32 @@ def fetch_history(request):
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
-    
-
 def Logs(request):
     call_logs = Call.objects.all()
 
+    
+    def format_phone_number(number):
+        number = re.sub(r'\D', '', number)
+        
+        if number.startswith('+49'):
+            number = number[3:]
+        elif number.startswith('49'):
+            number = number[2:]
+        
+        if number.startswith('0211'):
+            number = number[:4] + '-' + number[4:]
+        
+        return number
+
     for log in call_logs:
-        # Calculate duration
+        log.from_number = format_phone_number(log.from_number)
+        log.to_number = format_phone_number(log.to_number)
         duration = log.modified_time - log.date
         minutes, seconds = divmod(duration.total_seconds(), 60)
         log.duration = f"{int(minutes)} min {int(seconds)} sec"
 
     context = {'call_logs': call_logs}
     return render(request, 'Logs.html', context)
-
 
 
 incoming_call_flag = False
@@ -203,22 +215,26 @@ def incoming_call(request):
                     company_contact = None  
                     
             if direction == "in":
-                sipuser_matching = SipgateUser.objects.filter(phone_number__icontains=from_number)
-                if sipuser_matching.exists():
-                    sipuser = sipuser_matching.first()
-                    print(sipuser.id)
-                else:
-                    print("Incoming - No matching company contact found.")
-                    sipuser = None  
+                modified_to_number = to_number.lstrip('0211')
+                sipuser_matching = SipgateUser.objects.filter(
+                    Q(caller__icontains=modified_to_number) | 
+                    Q(phone_number__icontains=modified_to_number) | 
+                    Q(caller_id__icontains=modified_to_number)
+                )
             else:
-                sipuser_matching = SipgateUser.objects.filter(phone_number__icontains=to_number)
-                if sipuser_matching.exists():
-                    sipuser = sipuser_matching.first()
-                    print(sipuser.id)
-                else:
-                    print("outgoing - No company contact found.")
-                    sipuser = None  
-                
+                modified_from_number = from_number.lstrip('0211')
+                sipuser_matching = SipgateUser.objects.filter(
+                    Q(caller__icontains=modified_from_number) | 
+                    Q(phone_number__icontains=modified_from_number) | 
+                    Q(caller_id__icontains=modified_from_number)
+                )
+
+            if sipuser_matching.exists():
+                sipuser = sipuser_matching.first()
+                print(sipuser.id)
+            else:
+                print("No matching company contact found.")
+                sipuser = None
             
             print(direction)
             try:
