@@ -71,19 +71,13 @@ To manage SIPGATE users, follow these steps:
    - Navigate to the "Sipgate users" section.
    - Click on "Add Sipgate user".
    - Fill in the required details:
-     - **User ID:** A unique identifier for the user (e.g., Tim_01).
-     - **Display Name:** The name to be displayed (e.g., Tim Cook).
-     - **Phone Number:** The phone number associated with the user (e.g., +4915207181215).
-     - **Caller ID:** The ID to be displayed when making calls (e.g., 0211-87973990565).
-     - **Sipgate API Token:** The token required for API authentication.
-     - **Sipgate API Token ID:** The ID associated with the API token.
+
+     | User ID    | Display Name       | Phone Number       | Caller             | Caller ID           | API Token                             | Token ID   |
+     |------------|--------------------|--------------------|--------------------|---------------------|---------------------------------------|------------|
+     | Tim_01     | Tim Cook           | +4915207181215     | 49021187973990565 | 0211-87973990565   | c533fb19-c9f9-412b-a37e-b91aeb9b1519  | token-5KIN89|
+     | Sarvesh_01 | Tim Daniel SipGate | +4921187973990565  | 49021187973990566 | 0211-87973990565   | c533fb19-c9f9-412b-a37e-b91aeb9b1519  | token-5KIN89|
+
    - Save the user.
-  
-   - For example these two users can be there
-     | User ID   | Display Name    | Phone Number     | Caller ID          | API Token                               | Token ID    |
-     |-----------|-----------------|------------------|--------------------|-----------------------------------------|-------------|
-     | Tim_01    | Tim Cook        | +4915207181215   | 0211-87973990565  | c533fb19-c9f9-412b-a37e-b91aeb9b1519    | token-5KIN89|
-     | Sarvesh_01| Tim Daniel SipGate | +4921187973990565 | 0211-87973990565 | c533fb19-c9f9-412b-a37e-b91aeb9b1519    | token-5KIN89|
 
 ### 2. Managing Devices
 
@@ -93,16 +87,13 @@ To manage devices, follow these steps:
    - Navigate to the "Devices" section.
    - Click on "Add Device".
    - Enter the device details:
-     - **Device ID:** (optional) A unique identifier for the device.
-     - **Caller ID:** The ID to be displayed when using this device.
-     - **Assigned User:** Choose the SIPGATE user to whom this device should be assigned.
-   - Save the device.
-  
-   - for example these were our devices
+
      | Device ID | Caller ID        | Assigned User |
      |-----------|------------------|---------------|
      | e0        | 0211-87973990565 | 1             |
      | e1        | 0211-87973990565 | 2             |
+
+   - Save the device.
 
 ### 3. Making Outgoing Calls
 
@@ -115,6 +106,7 @@ To make outgoing calls, follow these steps:
 2.  **Create Contacts**
     - Can use our homepage contact form or can use the admin panel
     for example these were our contacts: name and phone_number fields
+
     | Name      | Phone Number     |
     |-----------|------------------|
     | Tim Da    | +4915207181215   |
@@ -125,8 +117,43 @@ To make outgoing calls, follow these steps:
    - Enter the phone number you wish to call into the designated field.
    Or click on the call Icon in front of the number given in the SIPgate contacts below to copy that number into the calling field.
 
-5. **Initiate Call:**
-   - Click on the call button to initiate the call. The call will be made using the configured SIPGATE user and device.
+### 4. Integrating Ngrok for Call Logging in Django
+
+To seamlessly generate logs for incoming and outgoing calls in your SIPGATE Django application, follow these steps:
+
+1. **Install Ngrok:**
+   - Download Ngrok from the official website or install it via package manager (e.g., Homebrew on macOS).
+
+2. **Integrate Ngrok with Django:**
+   - After installation, navigate to your Django project directory.
+   - Start Ngrok alongside your Django server using the command:
+
+     ```
+     ngrok http <django_server_port>
+     ```
+
+   - Ngrok will create a tunnel to your local server, providing a forwarding URL.
+
+3. **Update Webhook Endpoints:**
+   - Configure your webhook endpoints to use Ngrok's forwarding URLs. For example:
+     - For incoming calls: `<ngrok_forwarding_url>/incoming-call`
+     - For hangup events: `<ngrok_forwarding_url>/hangup`
+
+4. **Update Allowed Hosts Endpoint:**
+   - In your Django settings (`settings.py`), update the `ALLOWED_HOSTS` variable to include the Ngrok forwarding URL:
+
+     ```python
+     ALLOWED_HOSTS = ['<ngrok_forwarding_url>', 'localhost', '127.0.0.1']
+     ```
+
+5. **Update Global Variable in Views:**
+   - In your views, define a global variable for Ngrok to ensure consistency across endpoints:
+
+     ```python
+     ON_HANGUP_URL = '<ngrok_forwarding_url>'
+     ```
+
+These steps will ensure that your Django application effectively logs incoming and outgoing calls using Ngrok, allowing for seamless call management and monitoring.
 
 ### 5. Viewing Call Logs
 
