@@ -148,23 +148,24 @@ def fetch_history(request):
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+def format_phone_number(number):
+    number = re.sub(r'\D', '', number)
+    
+    if number.startswith('+49'):
+        number = number[3:]
+    elif number.startswith('49'):
+        number = number[2:]
+    
+    if number.startswith('0211'):
+        number = number[:4] + '-' + number[4:]
+        
+    if not number.startswith('0'):
+        number = '0' + number
+    
+    return number
 
 def Logs(request):
     call_logs = Call.objects.all()
-
-    
-    def format_phone_number(number):
-        number = re.sub(r'\D', '', number)
-        
-        if number.startswith('+49'):
-            number = number[3:]
-        elif number.startswith('49'):
-            number = number[2:]
-        
-        if number.startswith('0211'):
-            number = number[:4] + '-' + number[4:]
-        
-        return number
 
     for log in call_logs:
         log.from_number = format_phone_number(log.from_number)
@@ -278,16 +279,16 @@ def check_incoming_call(request):
     incoming_call_flag = False
 
     response_data = {"incomingCall": has_incoming_call}
-
     if has_incoming_call:
         latest_incoming_call = Call.objects.filter(direction='in').latest('date')
-        if latest_incoming_call.from_number in phone_numbers:
+        formatted_from_number = format_phone_number(latest_incoming_call.from_number)
+        response_data["contactNumber"] = formatted_from_number
+        
+        if formatted_from_number in phone_numbers:
             response_data["message"] = "In contacts"
-            response_data["contactNumber"] = latest_incoming_call.from_number
-            contact_name = CompanyContact.objects.filter(phone_number=latest_incoming_call.from_number).values_list('name', flat=True).first()
+            contact_name = CompanyContact.objects.filter(phone_number=formatted_from_number).values_list('name', flat=True).first()
             response_data["ContactName"] = contact_name if contact_name else "Unknown"
         else:
-            response_data["contactNumber"] = latest_incoming_call.from_number
             response_data["message"] = "Unknown"
 
     return JsonResponse(response_data)
