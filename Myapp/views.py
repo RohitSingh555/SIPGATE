@@ -30,7 +30,6 @@ def home(request):
             }
             return render(request, 'home.html', {'context': context})
         except Exception as e:
-            print("Error processing JSON data:", str(e))
             return HttpResponse("Bad Request", status=400)
     else:
         all_users = SipgateUser.objects.all()
@@ -80,14 +79,9 @@ def outgoing_call(request):
                 headers=headers,
                 json=request_body, 
             )
-            print(response)
-
-            print('Status:', response.status_code)
-            print('Body:', response.content.decode("utf-8"))
 
             return JsonResponse({'Success': 'Called Successfully'}, status=200)
         except Exception as e:
-            print('Error making outgoing call:', str(e))
             return JsonResponse({'error': 'Failed to initiate outgoing call'}, status=400)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
@@ -117,7 +111,6 @@ def fetch_history(request):
             context = {'call_logs': call_logs}
             return render(request, 'callLogs.html', context)
         except Exception as e:
-            print('Error fetching history:', str(e))
             return JsonResponse({'error': 'Failed to fetch history'}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
@@ -167,26 +160,20 @@ def incoming_call(request):
             call_id = request.POST.get('callId')
             user = request.POST.get('user[]')
             user_id_list = request.POST.getlist('userId[]')
-            print(user_id_list[0], "194 line")
             user_id_list1 = request.POST.getlist('userId1[]')
             full_user_id_list = request.POST.getlist('fullUserId[]')
-            print("webhook", from_number)
             
             if direction == "in":
                 matching_contacts = CompanyContact.objects.filter(phone_number__icontains=from_number)
                 if matching_contacts.exists():
                     company_contact = matching_contacts.first()
-                    print(company_contact.id)
                 else:
-                    print("Incoming - No matching company contact found.")
                     company_contact = None  
             else:
                 matching_contacts = CompanyContact.objects.filter(phone_number__icontains=to_number)
                 if matching_contacts.exists():
                     company_contact = matching_contacts.first()
-                    print(company_contact.id)
                 else:
-                    print("outgoing - No company contact found.")
                     company_contact = None  
                     
             if direction == "in":
@@ -204,12 +191,9 @@ def incoming_call(request):
 
             if sipuser_matching.exists():
                 sipuser = sipuser_matching.first()
-                print(sipuser.id)
             else:
-                print("No matching company contact found.")
                 sipuser = None
             
-            print(direction)
             try:
                     
                 call = Call(
@@ -237,7 +221,6 @@ def incoming_call(request):
                 return JsonResponse({"message": "SipgateUser not found"}, status=400)
 
         except Exception as e:
-            print("Error processing form data:", str(e))
             return JsonResponse({"message": "Bad Request"}, status=400)
     else:
         return JsonResponse({"message": "Method not allowed"}, status=405)
@@ -266,7 +249,7 @@ def check_incoming_call(request):
             if formatted_from_number_last_10_digits:
                 response_data["message"] = "In contacts"
                 contact_name = CompanyContact.objects.filter(phone_number__endswith=formatted_from_number_last_10_digits).values_list('name', flat=True).first()
-                print(contact_name,"contact_name")
+                
                 response_data["ContactName"] = contact_name if contact_name else "Unknown"
             else:
                 response_data["message"] = "Unknown"
