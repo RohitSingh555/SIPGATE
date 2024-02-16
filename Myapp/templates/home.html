@@ -44,7 +44,7 @@
               <div class="col-md-4">
                 <p class="p-4"><i style="font-size:120px" class="fas fa-user"></i></p>
               </div>
-              <div class="col-md-8">
+              <div class="col-md-8" id="user_data_div">
                 <p><strong>ID:</strong> <span id="userid">{{ context.user_data.0.sipgate_user }}</span></p>
                 <p><strong>Name:</strong> <span id="username">{{ context.user_data.0.name }}</span></p>
                 <p class="d-none"><strong>Phone Number:</strong> <span id="phonenumber">{{ context.user_data.0.phone_number }}</span></p>
@@ -90,16 +90,17 @@
               <td>{{ item.name|default:"-" }}</td>
               <td class="d-flex justify-content-between align-items-center text-center">
                 {{ item.phone_number|default:"-" }}
-                <button type="button" class="btn btn-primary" onclick="copyText('{{ item.phone_number|default:"-" }}')">
-                  <i class="fas fa-phone-alt"></i>
+                <button type="button" class="btn btn-primary" onclick="callPhoneNumber(this)">
+                    <i class="fas fa-phone-alt"></i>
                 </button>
-              </td>
+            </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
-      
-      <!-- Modal -->
+      <div id="callingMessage" class="calling-message">
+        Calling...<i class="fas fa-phone-alt fa-spin"></i>
+    </div>
       <div class="modal fade" id="addContactModal" tabindex="-1" role="dialog" aria-labelledby="addContactModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
@@ -110,32 +111,11 @@
               </button>
             </div>
             <div class="modal-body">
-              <!-- Contact form -->
               <form id="addContactForm">
                 <div class="form-group">
                   <label for="firstname">Name</label>
                   <input type="text" class="form-control" id="firstname" name="firstname" required>
                 </div>
-                {% comment %} <div class="form-group">
-                  <label for="lastname">Last Name</label>
-                  <input type="text" class="form-control" id="lastname" name="lastname" required>
-                </div>
-                <div class="form-group">
-                  <label for="organization">Organization</label>
-                  <input type="text" class="form-control" id="organization" name="organization">
-                </div>
-                <div class="form-group">
-                  <label for="scope">Scope</label>
-                  <input type="text" class="form-control" id="scope" name="scope">
-                </div>
-                <div class="form-group">
-                  <label for="address">Address</label>
-                  <input type="text" class="form-control" id="address" name="address">
-                </div>
-                <div class="form-group">
-                  <label for="email">Email</label>
-                  <input type="email" class="form-control" id="email" name="email">
-                </div> {% endcomment %}
                 <div class="form-group">
                   <label for="phone">Phone Number</label>
                   <input type="tel" class="form-control" id="phone" name="phone">
@@ -155,11 +135,6 @@
   </div>
   {% include 'footer.html' %}
   <script>
-    function copyText(text) {
-      document.getElementById('phoneInput').value = text;
-    }
-
-    
     document.getElementById('saveContactBtn').addEventListener('click', function() {
       var name = document.getElementById('firstname').value;
       var phone = document.getElementById('phone').value;
@@ -193,11 +168,9 @@
     $(document).ready(function () {
 
       function updateUserInformation(userId, userName, userPhoneNumber, userCaller, userToken, userTokenId, callerId, defaultId) {
-        // Set cookies
         setCookie('caller', userCaller);
         setCookie('sipgate-token', userToken);
         setCookie('sipgate-token_id', userTokenId);
-        setCookie('active_user_number', userPhoneNumber);
         setCookie('caller_id', callerId);
         setCookie('default_id', defaultId);
 
@@ -254,16 +227,6 @@
         console.log(userId + ': ' + userName);
       });
 
-      function updateDOM(userData) {
-        $('#userid').text(userData.id);
-        $('#username').text(userData.name);
-        $('#phone-number').text(userData.phone_number);
-        $('#caller').text(userData.caller);
-        $('#caller-id').text(userData.caller_id);
-        $('#user-token').text(userData.user_token); 
-      }
-      
-
       $('#callButton').on('click', function () {
         var phoneNumber = $('#phoneInput').val();
         var userid = $('#userid').text();
@@ -296,9 +259,53 @@
         }
       });
 
-    
 
+      var switchUserButton = document.getElementById('navbarDropdownMenuLink');
+    var userDataDiv = document.getElementById('user_data_div');
+    
+function blinkSwitchUserButton() {
+  var originalColor = switchUserButton.style.color;
+  var originalBackgroundColor = switchUserButton.style.backgroundColor;
+  var isBlinking = false;
+  var intervalId = setInterval(function() {
+      if (isBlinking) {
+          switchUserButton.style.color = originalColor;
+          switchUserButton.style.backgroundColor = originalBackgroundColor;
+      } else {
+          switchUserButton.style.color = '#ffffff'; 
+          switchUserButton.style.backgroundColor = '#1a73e8'; 
+      }
+      isBlinking = !isBlinking;
+  }, 500); 
+  
+  setTimeout(function() {
+      clearInterval(intervalId); 
+      switchUserButton.style.color = originalColor; 
+      switchUserButton.style.backgroundColor = originalBackgroundColor; 
+  }, 7000); 
+}
+
+    $('.user-option').on('click', function (e) {
+        switchUserButton.style.color = '';
+        userDataDiv.style.display = 'block';
     });
+    
+    if (!getCookie('default_id')) {
+        var alertDiv = '<div id="selectUserMessage" style="background-color: #eaf3ff; display: flex;width:50%;justify-content:center;align-items: center; padding: 34px; border: 1px solid #b5d0eb; border-radius: 5px;">';
+          alertDiv += '<p style="color: #1a73e8; font-weight: bold;"><i class="fas fa-info-circle"></i> Please select a user first.</p>';
+          alertDiv += '</div>';
+        userDataDiv.insertAdjacentHTML('afterend', alertDiv);
+        
+        if (switchUserButton) {
+            blinkSwitchUserButton();
+        }
+        userDataDiv.style.display = 'none';
+    }
+
+      
+    });
+
+    
   </script>
 </body>
 </html>

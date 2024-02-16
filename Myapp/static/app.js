@@ -25,19 +25,25 @@ function getCookie(name) {
             return cookieValue;
         }
 
-        // 
-    
-        // // Rest of your existing JavaScript code remains unchanged
-    
-    
-        // function snoozeModal() {
-        //   $("#incomingCallModal").modal("hide");
-        // }
-    
-        // $(document).ready(function () {
-        //   pollForIncomingCall();
-        // });
-    
-        // function redirectToCall() {
-        //   window.location.href = "/incoming-call";
-        // }
+
+function callPhoneNumber(button) {
+  var phoneNumber = button.parentNode.textContent.trim();
+  document.getElementById('phoneInput').value = phoneNumber;
+
+  var callingMessage = document.getElementById('callingMessage');
+  callingMessage.style.display = 'block';
+  setTimeout(function() {
+      callingMessage.style.display = 'none';
+  }, 10000);
+  document.getElementById('callButton').click();
+}
+
+function updateDOM(userData) {
+  $('#userid').text(userData.id);
+  $('#username').text(userData.name);
+  $('#phone-number').text(userData.phone_number);
+  $('#caller').text(userData.caller);
+  $('#caller-id').text(userData.caller_id);
+  $('#user-token').text(userData.user_token); 
+}
+

@@ -47,21 +47,18 @@ def outgoing_call(request):
         try:
             data = json.loads(request.body.decode('utf-8'))
             callee = data.get('callee')
-            # username = data.get('username')
-            # caller_req = data.get('caller')
             token = request.COOKIES.get('sipgate-token')
             token_id = request.COOKIES.get('sipgate-token_id')
             caller_id = request.COOKIES.get('caller_id')
             caller = request.COOKIES.get('caller')
             default_id = request.COOKIES.get('default_id')
-            # active_user_number = request.COOKIES.get('active_user_number')
             credentials = f"{token_id}:{token}"
             base64_encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
             base64_encoded_credentials= str(base64_encoded_credentials)
             callee = str(callee)
             try:
-                Device_instance = Devices.objects.get(id=default_id)
-            except Devices.DoesNotExist:
+                Device_instance = SipgateUser.objects.get(id=default_id)
+            except SipgateUser.DoesNotExist:
                 return HttpResponse("Device not found", status=404)
             device_id = Device_instance.device_id
             caller = caller
@@ -71,14 +68,12 @@ def outgoing_call(request):
                 'Content-Type': 'application/json',
                 'Authorization': 'Basic ' + base64_encoded_credentials
             }
-            print(headers)
             request_body = {
                 "deviceId": device_id,
                 "callee": callee,
                 "caller": caller,
                 "callerId": caller_id,
             }
-            print(request_body)
 
             response = requests.post(
                 base_url + 'sessions/calls',
@@ -90,33 +85,12 @@ def outgoing_call(request):
             print('Status:', response.status_code)
             print('Body:', response.content.decode("utf-8"))
 
-            # device, created = Devices.objects.get_or_create(device_id=device_id, defaults={'caller_id': caller_id})
-            # call = Call.objects.create(
-            #     active_user=None,  
-            #     company_contact=None,  
-            #     event=None,  
-            #     from_number=active_user_number,
-            #     to_number=callee,
-            #     direction="out",
-            #     call_id="", 
-            #     user=username,
-            #     user_id_list=caller_req,
-            #     user_id_list1="",
-            #     full_user_id_list="",
-            #     date=timezone.now(),
-            #     modified_time=timezone.now(),
-            # )
-            # call.save()
             return JsonResponse({'Success': 'Called Successfully'}, status=200)
         except Exception as e:
             print('Error making outgoing call:', str(e))
             return JsonResponse({'error': 'Failed to initiate outgoing call'}, status=400)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-
-
-
 
 def fetch_history(request):
     if request.method == 'GET':
@@ -219,14 +193,12 @@ def incoming_call(request):
                 modified_to_number = to_number.lstrip('0211')
                 sipuser_matching = SipgateUser.objects.filter(
                     Q(caller__icontains=modified_to_number) | 
-                    Q(phone_number__icontains=modified_to_number) | 
                     Q(caller_id__icontains=modified_to_number)
                 )
             else:
                 modified_from_number = from_number.lstrip('0211')
                 sipuser_matching = SipgateUser.objects.filter(
                     Q(caller__icontains=modified_from_number) | 
-                    Q(phone_number__icontains=modified_from_number) | 
                     Q(caller_id__icontains=modified_from_number)
                 )
 
@@ -257,7 +229,6 @@ def incoming_call(request):
                 )
                 call.save()
 
-                # Set the incoming_call_flag to True after saving data
                 incoming_call_flag = True
 
                 xml_response = build_xml_response()
@@ -277,33 +248,44 @@ def check_incoming_call(request):
     phone_numbers = set(CompanyContact.objects.values_list('phone_number', flat=True))
     has_incoming_call = incoming_call_flag
     incoming_call_flag = False
+    active_user_number = request.COOKIES.get('caller')
 
     response_data = {"incomingCall": has_incoming_call}
+
     if has_incoming_call:
         latest_incoming_call = Call.objects.filter(direction='in').latest('date')
         formatted_from_number = format_phone_number(latest_incoming_call.from_number)
         response_data["contactNumber"] = formatted_from_number
-        
-        if formatted_from_number in phone_numbers:
-            response_data["message"] = "In contacts"
-            contact_name = CompanyContact.objects.filter(phone_number=formatted_from_number).values_list('name', flat=True).first()
-            response_data["ContactName"] = contact_name if contact_name else "Unknown"
+
+        active_user_last_10_digits = active_user_number[-10:] if active_user_number else None
+        incoming_call_last_10_digits = latest_incoming_call.to_number[-10:]
+
+        if active_user_last_10_digits and active_user_last_10_digits == incoming_call_last_10_digits:
+            formatted_from_number_last_10_digits = formatted_from_number[-10:]
+
+            if formatted_from_number_last_10_digits:
+                response_data["message"] = "In contacts"
+                contact_name = CompanyContact.objects.filter(phone_number__endswith=formatted_from_number_last_10_digits).values_list('name', flat=True).first()
+                print(contact_name,"contact_name")
+                response_data["ContactName"] = contact_name if contact_name else "Unknown"
+            else:
+                response_data["message"] = "Unknown"
         else:
-            response_data["message"] = "Unknown"
+            return JsonResponse({})
 
     return JsonResponse(response_data)
 
+
+
+
 @csrf_exempt
 def on_hangup(request):
-    print("The call has been hung up")
     
     if request.method == "POST":
         try:
             call_id = request.POST.get('callId')
-            print(call_id)
             try:
                 call = Call.objects.get(call_id=call_id)
-                print("call")
             except Call.DoesNotExist:
                 return JsonResponse({"message": "Call does not exist"}, status=404)
 
@@ -313,7 +295,6 @@ def on_hangup(request):
             return HttpResponse("This response will be discarded", status=200)
         
         except Exception as e:
-            print("Error processing form data:", str(e))
             return JsonResponse({"message": "Bad Request"}, status=400)
     
     return JsonResponse({"message": "Method not allowed"}, status=405)
@@ -330,17 +311,11 @@ def save_contact(request):
         data = json.loads(request.body)
         name = data.get('name')
         phone = data.get('phone')
-        csrftoken = data.get('csrftoken')
-        print("csrf token", csrftoken)
-        print('Received Name:', name)
-        print('Received Phone:', phone)
 
         try:
             CompanyContact.objects.create(name=name, phone_number=phone)
-            print('Contact saved successfully')
             return JsonResponse({'message': 'Contact saved successfully'})
         except Exception as e:
-            print('Error saving contact:', e)
             return JsonResponse({'error': 'Internal Server Error'}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
